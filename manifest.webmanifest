@@ -1,0 +1,16 @@
+{
+  "name": "Gulf & ANZ Job Desk",
+  "short_name": "Job Desk",
+  "description": "Program and project manager roles in the Gulf, Australia and NZ, with match scores and apply packs.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f161b",
+  "theme_color": "#16212a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

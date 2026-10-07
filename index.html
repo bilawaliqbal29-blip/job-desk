@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16212a">
+<meta name="robots" content="noindex">
+<title>Gulf &amp; ANZ Job Desk</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: an operations desk. Header with the run status, a stage strip that filters, a filter row, then one row per role with its apply pack folded underneath. */
+:root{
+  --bg:#f3f5f6; --surface:#ffffff; --sunk:#e8ecee; --line:#d4dbdf;
+  --fg:#16212a; --muted:#5b6a75; --accent:#c9780a; --accent-ink:#ffffff; --accent-soft:#fbefd9;
+  --good:#1f7a4d; --good-soft:#dff1e7; --warn:#9a6a00; --warn-soft:#f8ecc9; --bad:#a33a2b; --bad-soft:#f6e0dc; --stretch:#6b7680; --stretch-soft:#e9edf0;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161b; --surface:#162027; --sunk:#1d2932; --line:#2b3a44;
+  --fg:#e6edf1; --muted:#93a3ae; --accent:#f0a53a; --accent-ink:#1a1206; --accent-soft:#3a2a12;
+  --good:#5cc995; --good-soft:#163627; --warn:#e3b54a; --warn-soft:#3a2f12; --bad:#ef8a7a; --bad-soft:#3d1f1a; --stretch:#9aa8b2; --stretch-soft:#24313a;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161b; --surface:#162027; --sunk:#1d2932; --line:#2b3a44;
+  --fg:#e6edf1; --muted:#93a3ae; --accent:#f0a53a; --accent-ink:#1a1206; --accent-soft:#3a2a12;
+  --good:#5cc995; --good-soft:#163627; --warn:#e3b54a; --warn-soft:#3a2f12; --bad:#ef8a7a; --bad-soft:#3d1f1a; --stretch:#9aa8b2; --stretch-soft:#24313a;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:24px 64px;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:clamp(1.6rem,3.2vw,2.1rem);font-weight:800;letter-spacing:-.01em}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.run{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.run b{color:var(--fg);font-weight:600}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* stage strip */
+.stages{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stage{background:var(--surface);border:0;padding:10px 12px;text-align:left;display:grid;gap:2px}
+.stage .n{font-family:var(--f-display);font-weight:800;font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stage .t{font-size:12px;color:var(--muted)}
+.stage[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 0 -3px 0 var(--accent)}
+@media (max-width:640px){.stages{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.filters label{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+select,input[type=text],input[type=url],input[type=date],textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.55;cursor:default}
+
+/* gap insight */
+.insight{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;font-size:14px;padding:10px 14px;background:var(--sunk);border-radius:var(--r)}
+.insight b{font-weight:600}
+
+/* list */
+.list{display:grid;gap:10px}
+.job{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:4px 16px;padding:14px 16px;align-items:start}
+.score{display:grid;gap:4px;justify-items:start}
+.score .num{font-family:var(--f-mono);font-weight:600;font-size:1.35rem;font-variant-numeric:tabular-nums;line-height:1}
+.meter{width:56px;height:5px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.lvl{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px}
+.lvl.strong{background:var(--good-soft);color:var(--good)}
+.lvl.good{background:var(--warn-soft);color:var(--warn)}
+.lvl.stretch{background:var(--stretch-soft);color:var(--stretch)}
+.lvl.none{background:var(--sunk);color:var(--muted)}
+.body{min-width:0;display:grid;gap:6px}
+.body h3{font-size:1.08rem;font-weight:700}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted);font-size:13px}
+.meta .plat{font-family:var(--f-mono);font-size:12px}
+.why{margin:0;font-size:14px;max-width:72ch}
+.gaps{display:flex;flex-wrap:wrap;gap:6px}
+.gap{font-size:12px;border:1px dashed var(--line);border-radius:4px;padding:1px 7px;color:var(--muted)}
+.side{display:grid;gap:8px;justify-items:end}
+.side select{min-width:150px}
+.side a{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none}
+.side a:hover{text-decoration:underline}
+.applied{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+details.pack{grid-column:2 / -1;border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+details.pack summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--fg)}
+.packgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+.packcell{background:var(--sunk);border-radius:6px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.packcell pre{white-space:pre-wrap;font-family:var(--f-body);font-size:14px;margin:0}
+.packrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mini{border:0;background:none;color:var(--accent);font-weight:600;font-size:12px;padding:2px 4px}
+.notes{width:100%;min-height:54px;resize:vertical;margin-top:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:720px){
+  .job{grid-template-columns:56px minmax(0,1fr)}
+  .side{grid-column:1 / -1;justify-items:start;grid-auto-flow:column;align-items:center;justify-content:start;gap:12px}
+  details.pack{grid-column:1 / -1}
+  .packgrid{grid-template-columns:minmax(0,1fr)}
+}
+
+/* add form + boards */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:12px}
+.panel h2{font-size:1.1rem;font-weight:700}
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.form label{display:grid;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.form .wide{grid-column:1 / -1}
+.form input,.form select,.form textarea{width:100%}
+@media (max-width:640px){.form{grid-template-columns:minmax(0,1fr)}}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.board{display:grid;gap:4px;font-size:14px}
+.board a{color:var(--fg);font-weight:600}
+.board span{color:var(--muted);font-size:13px}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.login{max-width:420px;margin:12vh auto 0}
+.login h1{margin:4px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap" id="loginView" hidden>
+  <div class="login panel">
+    <div class="label">Gulf &amp; ANZ Job Desk</div>
+    <h1>Sign in</h1>
+    <p class="status" style="margin:0">Use the email and password for your job desk. The first time, choose a password and tap Create account.</p>
+    <form id="loginForm" class="form" style="grid-template-columns:minmax(0,1fr)">
+      <label for="lEmail">Email<input id="lEmail" type="email" autocomplete="username" required></label>
+      <label for="lPass">Password<input id="lPass" type="password" autocomplete="current-password" minlength="8" required></label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn primary" type="submit" id="lSignIn">Sign in</button>
+        <button class="btn" type="button" id="lSignUp">Create account</button>
+        <button class="mini" type="button" id="lForgot">Forgot password?</button>
+      </div>
+      <span class="status" id="lStatus" role="status"></span>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="resetView" hidden>
+  <div class="login panel">
+    <div class="label">Gulf &amp; ANZ Job Desk</div>
+    <h1>Set a new password</h1>
+    <form id="resetForm" class="form" style="grid-template-columns:minmax(0,1fr)">
+      <label for="rPass">New password<input id="rPass" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div><button class="btn primary" type="submit" id="rSave">Save password</button></div>
+      <span class="status" id="rStatus" role="status"></span>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="appView" hidden>
+  <header class="top">
+    <div>
+      <div class="label">Program &amp; project manager roles · UAE · KSA · Qatar · Oman · Bahrain · Brunei · Australia · NZ</div>
+      <h1>Gulf &amp; ANZ Job Desk</h1>
+      <p>Every role here was opened and checked as still open when it was added. Pick a stage, copy the apply pack, apply on the board, then move the role along.</p>
+    </div>
+    <div class="run"><span id="run">Loading…</span><br><button class="mini" type="button" id="masterCv">Master CV (PDF)</button> <button class="mini" type="button" id="signOut">Sign out</button></div>
+  </header>
+
+  <nav class="stages" id="stages" aria-label="Pipeline stage"></nav>
+
+  <div class="filters">
+    <div class="chips" id="regions" role="group" aria-label="Region"></div>
+    <label for="minMatch">Min match
+      <select id="minMatch"><option value="0">Any</option><option value="50">50%+</option><option value="60">60%+</option><option value="70">70%+</option></select>
+    </label>
+    <label for="sortBy">Sort
+      <select id="sortBy"><option value="match">Best match</option><option value="posted">Newest</option></select>
+    </label>
+    <span class="spacer"></span>
+    <button class="btn" type="button" id="refresh">Refresh</button>
+  </div>
+
+  <div class="insight" id="insight" hidden></div>
+
+  <section class="list" id="list" aria-live="polite"><div class="empty">Loading your roles…</div></section>
+
+  <div class="two">
+    <section class="panel" aria-labelledby="addH">
+      <h2 id="addH">Add a role you found</h2>
+      <p class="status" style="margin:0">For LinkedIn, Bayt, Seek and NaukriGulf. Paste the job description and the next morning run scores it and drafts the apply pack.</p>
+      <form class="form" id="addForm">
+        <label for="fTitle">Job title<input id="fTitle" type="text" required></label>
+        <label for="fCompany">Company<input id="fCompany" type="text" required></label>
+        <label for="fCity">City<input id="fCity" type="text"></label>
+        <label for="fCountry">Country
+          <select id="fCountry"><option>UAE</option><option>Saudi Arabia</option><option>Qatar</option><option>Oman</option><option>Bahrain</option><option>Brunei</option><option>Australia</option><option>New Zealand</option></select>
+        </label>
+        <label for="fPlatform">Platform
+          <select id="fPlatform"><option>LinkedIn</option><option>Bayt</option><option>GulfTalent</option><option>NaukriGulf</option><option>Seek</option><option>Indeed</option><option>Company site</option><option>Recruiter</option></select>
+        </label>
+        <label for="fUrl">Link<input id="fUrl" type="url" placeholder="https://"></label>
+        <label for="fJd" class="wide">Job description (needed for scoring)<textarea id="fJd" rows="4"></textarea></label>
+        <div class="wide" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn primary" type="submit" id="addBtn">Add role</button>
+          <span class="status" id="addStatus" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="boardsH">
+      <h2 id="boardsH">Boards to check yourself</h2>
+      <div class="boards">
+        <div class="board"><a href="https://www.linkedin.com/jobs/search/?keywords=program%20manager%20solar&location=Middle%20East&f_TPR=r604800" target="_blank" rel="noopener">LinkedIn Jobs</a><span>Gulf, last 7 days.</span></div>
+        <div class="board"><a href="https://www.bayt.com/en/international/jobs/solar-project-manager-jobs/" target="_blank" rel="noopener">Bayt</a><span>Biggest Gulf board.</span></div>
+        <div class="board"><a href="https://www.naukrigulf.com/program-manager-jobs" target="_blank" rel="noopener">NaukriGulf</a><span>Strong for KSA, Qatar, Oman.</span></div>
+        <div class="board"><a href="https://www.seek.com.au/solar-project-manager-jobs" target="_blank" rel="noopener">Seek Australia</a><span>Look for visa sponsorship.</span></div>
+        <div class="board"><a href="https://www.seek.co.nz/project-manager-renewable-jobs" target="_blank" rel="noopener">Seek New Zealand</a><span>Renewables PM roles.</span></div>
+        <div class="board"><a href="https://www.gulftalent.com/jobs/title/pmo" target="_blank" rel="noopener">GulfTalent</a><span>Searched for you every morning.</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  const STAGES=[["new","New"],["shortlist","Shortlisted"],["applied","Applied"],["interview","Interview"],["offer","Offer"],["closed","Closed"]];
+  const STATUS_OPTS=[["new","New"],["shortlist","Shortlisted"],["applied","Applied"],["interview","Interview"],["offer","Offer"],["rejected","Rejected"],["skipped","Not for me"]];
+  const REGIONS=[["all","All"],["gulf","Gulf"],["anz","Australia & NZ"]];
+  const GULF=["UAE","Saudi Arabia","Qatar","Oman","Bahrain","Brunei"];
+  const $=id=>document.getElementById(id);
+  const cfg=window.JOBDESK_CONFIG||{};
+  const state={jobs:[],stage:"new",region:"all",min:0,sort:"match"};
+  try{const s=JSON.parse(localStorage.getItem("jobdesk-view")||"{}");Object.assign(state,{stage:s.stage||"new",region:s.region||"all",min:+s.min||0,sort:s.sort||"match"});}catch(e){}
+  function saveView(){try{localStorage.setItem("jobdesk-view",JSON.stringify({stage:state.stage,region:state.region,min:state.min,sort:state.sort}));}catch(e){}}
+  $("minMatch").value=String(state.min);$("sortBy").value=state.sort;
+
+  if(!cfg.supabaseUrl||!window.supabase){
+    $("loginView").hidden=false;$("lStatus").textContent="The app isn't connected to its database yet.";
+    $("lSignIn").disabled=true;$("lSignUp").disabled=true;return;
+  }
+  const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+
+  const stageOf=j=>{const s=j.status||"new";return (s==="rejected"||s==="skipped")?"closed":s;};
+  const regionOf=j=>GULF.includes(j.country)?"gulf":"anz";
+  const lvlOf=m=>m==null?"none":m>=70?"strong":m>=55?"good":"stretch";
+  const lvlText={strong:"Strong",good:"Good",stretch:"Stretch",none:"Not scored"};
+  function el(tag,attrs,...kids){const n=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")n.className=attrs[k];else if(k==="text")n.textContent=attrs[k];else n.setAttribute(k,attrs[k]);}for(const c of kids){if(c!=null)n.append(c);}return n;}
+  function fmtDate(d){if(!d)return "";const t=new Date(d+"T00:00:00");return isNaN(t)?d:t.toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
+  const today=()=>new Date().toISOString().slice(0,10);
+
+  function renderStages(){
+    const box=$("stages");box.textContent="";
+    for(const [k,label] of STAGES){
+      const n=state.jobs.filter(j=>stageOf(j)===k).length;
+      const b=el("button",{class:"stage",type:"button","aria-pressed":String(state.stage===k)},el("span",{class:"n",text:String(n)}),el("span",{class:"t",text:label}));
+      b.onclick=()=>{state.stage=k;saveView();render();};box.append(b);
+    }
+  }
+  function renderRegions(){
+    const box=$("regions");box.textContent="";
+    for(const [k,label] of REGIONS){const b=el("button",{class:"chip",type:"button","aria-pressed":String(state.region===k),text:label});b.onclick=()=>{state.region=k;saveView();render();};box.append(b);}
+  }
+  function renderInsight(){
+    const open=state.jobs.filter(j=>!["rejected","skipped"].includes(j.status));
+    const counts={};for(const j of open)for(const g of (j.gap_tags||[]))counts[g]=(counts[g]||0)+1;
+    const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const box=$("insight");box.textContent="";
+    if(!top.length){box.hidden=true;return;}
+    box.hidden=false;box.append(el("span",{class:"label",text:"Most-asked gaps"}));
+    for(const [g,n] of top){const s=el("span");s.append(el("b",{text:g})," in "+n+" of "+open.length+" open roles");box.append(s);}
+  }
+  function copyBtn(text){
+    const b=el("button",{class:"mini",type:"button",text:"Copy"});
+    b.onclick=async()=>{try{await navigator.clipboard.writeText(text);b.textContent="Copied";}catch(e){b.textContent="Select and copy";}setTimeout(()=>b.textContent="Copy",1600);};
+    return b;
+  }
+  function jobRow(j){
+    const lvl=lvlOf(j.match);
+    const meter=el("div",{class:"meter"});const bar=el("i");bar.style.width=(j.match||0)+"%";meter.append(bar);
+    const score=el("div",{class:"score"},el("span",{class:"num",text:j.match==null?"–":j.match+"%"}),meter,el("span",{class:"lvl "+lvl,text:lvlText[lvl]}));
+    const meta=el("div",{class:"meta"},el("span",{text:j.company}),el("span",{text:[j.city,j.country].filter(Boolean).join(", ")}),j.years?el("span",{text:j.years}):null,j.salary?el("span",{text:j.salary}):null,el("span",{class:"plat",text:(j.platform||"")+(j.posted?" · posted "+fmtDate(j.posted):"")}));
+    const gaps=el("div",{class:"gaps"});for(const g of (j.gaps||[]))gaps.append(el("span",{class:"gap",text:g}));
+    const body=el("div",{class:"body"},el("h3",{text:j.title}),meta,j.why?el("p",{class:"why",text:j.why}):null,(j.gaps&&j.gaps.length)?gaps:null);
+    const sel=el("select",{id:"st-"+j.id,"aria-label":"Stage for "+j.title});
+    for(const [k,l] of STATUS_OPTS){const o=el("option",{value:k,text:l});if((j.status||"new")===k)o.selected=true;sel.append(o);}
+    sel.onchange=()=>{const patch={status:sel.value};if(sel.value==="applied"&&!j.applied_on)patch.applied_on=today();save(j.id,patch);};
+    const side=el("div",{class:"side"},sel,j.url?el("a",{href:j.url,target:"_blank",rel:"noopener",text:"Open listing ↗"}):null,j.applied_on?el("span",{class:"applied",text:"Applied "+fmtDate(j.applied_on)}):null);
+    const row=el("article",{class:"job"},score,body,side);
+    const pack=el("details",{class:"pack"});
+    pack.append(el("summary",{text:j.pitch?"Apply pack":(j.jd&&j.match==null?"Apply pack (drafted in the next morning run)":"Apply pack (not drafted)")}));
+    if(j.pitch||j.cover){
+      const g=el("div",{class:"packgrid"});
+      if(j.pitch)g.append(el("div",{class:"packcell"},el("div",{class:"packrow"},el("span",{class:"label",text:"CV summary for this role"}),copyBtn(j.pitch)),el("pre",{text:j.pitch})));
+      if(j.cover)g.append(el("div",{class:"packcell"},el("div",{class:"packrow"},el("span",{class:"label",text:"Cover note"}),copyBtn(j.cover)),el("pre",{text:j.cover})));
+      pack.append(g);
+    }
+    if(state.cv){
+      const st=el("span",{class:"status"});
+      const row2=el("div",{style:"display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap"});
+      if(j.cv_tailor){
+        const b=el("button",{class:"btn primary",type:"button",text:"Download tailored resume (PDF)"});
+        b.onclick=()=>downloadCv(j.cv_tailor,j,b,st,"pdf");
+        const w=el("button",{class:"mini",type:"button",text:"Word version"});
+        w.onclick=()=>downloadCv(j.cv_tailor,j,w,st,"docx");
+        row2.append(b,w,st);
+      }else if(j.tailor_requested){
+        row2.append(el("span",{class:"status",text:"Tailored resume requested. It will be ready here after the next morning run."}));
+      }else{
+        const b=el("button",{class:"btn primary",type:"button",text:"Get a resume tailored to this job"});
+        b.onclick=()=>{b.disabled=true;save(j.id,{tailor_requested:true});};
+        const m=el("button",{class:"mini",type:"button",text:"Master CV (PDF)"});
+        m.onclick=()=>downloadCv(null,null,m,st,"pdf");
+        row2.append(b,m,st);
+      }
+      pack.append(row2);
+    }
+    const notes=el("textarea",{class:"notes",id:"nt-"+j.id,placeholder:"Notes: recruiter name, reference number, follow-up date…","aria-label":"Notes for "+j.title});
+    notes.value=j.notes||"";notes.onchange=()=>save(j.id,{notes:notes.value});
+    pack.append(notes);row.append(pack);
+    return row;
+  }
+  function render(){
+    renderStages();renderRegions();renderInsight();
+    let rows=state.jobs.filter(j=>stageOf(j)===state.stage);
+    if(state.region!=="all")rows=rows.filter(j=>regionOf(j)===state.region);
+    if(state.min)rows=rows.filter(j=>(j.match||0)>=state.min);
+    rows.sort(state.sort==="posted"?(a,b)=>(b.posted||"").localeCompare(a.posted||""):(a,b)=>(b.match??-1)-(a.match??-1));
+    const list=$("list");list.textContent="";
+    if(!rows.length){const label=STAGES.find(s=>s[0]===state.stage)[1];list.append(el("div",{class:"empty",text:state.jobs.length?("No roles in "+label+" with these filters."):"No roles yet. The morning search adds new matches here, or add one you found below."}));return;}
+    for(const j of rows)list.append(jobRow(j));
+  }
+  async function load(){
+    const {data,error}=await sb.from("jobs").select("*");
+    if(error){$("run").textContent="Couldn't load roles. Pull to refresh or tap Refresh.";return;}
+    state.jobs=data||[];render();
+    if(!state.cv){const c=await sb.from("profile").select("value").eq("key","cv").maybeSingle();if(c.data&&c.data.value){state.cv=c.data.value;render();}}
+    const m=await sb.from("meta").select("value").eq("key","run").maybeSingle();
+    $("run").textContent=m.data&&m.data.value?("Last search "+(m.data.value.when||"")+(m.data.value.summary?" · "+m.data.value.summary:"")):"Morning search not run yet";
+  }
+  async function save(id,patch){
+    patch.updated_at=new Date().toISOString();
+    const {error}=await sb.from("jobs").update(patch).eq("id",id);
+    if(error){$("run").textContent="Couldn't save that change. Check your connection and try again.";return;}
+    const j=state.jobs.find(x=>x.id===id);if(j)Object.assign(j,patch);render();
+  }
+  function loadScript(src){return new Promise((ok,fail)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=fail;document.head.append(s);});}
+  async function downloadCv(tailor,job,btn,st,fmt){
+    if(!state.cv){if(st)st.textContent="Your CV hasn't loaded yet. Tap Refresh and try again.";return;}
+    fmt=fmt||"pdf";
+    btn.disabled=true;if(st)st.textContent="Building your resume…";
+    try{
+      if(!window.buildCv||!window.buildCvPdf)await loadScript("cv.js?v=4");
+      let blob;
+      if(fmt==="pdf"){
+        if(!window.jspdf)await loadScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
+        blob=window.buildCvPdf(window.jspdf.jsPDF,state.cv,tailor||null);
+      }else{
+        if(!window.docx)await loadScript("https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js");
+        blob=await window.docx.Packer.toBlob(window.buildCv(window.docx,state.cv,tailor||null));
+      }
+      const tag=tailor&&job?"_"+(job.company+" "+job.title).replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,60):"";
+      const name=(tailor?"Bilawal_Iqbal_Resume":"Bilawal_Iqbal_CV")+tag+"."+fmt;
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+      if(st)st.textContent="Saved "+name;
+    }catch(e){if(st)st.textContent="Couldn't build the CV. Check your connection and try again.";}
+    btn.disabled=false;
+  }
+  $("masterCv").onclick=()=>downloadCv(null,null,$("masterCv"),$("run"),"pdf");
+  $("minMatch").onchange=e=>{state.min=+e.target.value;saveView();render();};
+  $("sortBy").onchange=e=>{state.sort=e.target.value;saveView();render();};
+  $("refresh").onclick=load;
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!$("appView").hidden)load();});
+  $("addForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const title=$("fTitle").value.trim(),company=$("fCompany").value.trim();if(!title||!company)return;
+    const id=(company+"-"+title).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)+"-"+Date.now().toString(36);
+    const row={id,title,company,city:$("fCity").value.trim(),country:$("fCountry").value,platform:$("fPlatform").value,url:$("fUrl").value.trim(),jd:$("fJd").value.trim(),found:today(),status:"shortlist",source:"manual"};
+    $("addBtn").disabled=true;
+    const {error}=await sb.from("jobs").insert(row);
+    $("addBtn").disabled=false;
+    if(error){$("addStatus").textContent="Couldn't add the role. Try again.";return;}
+    $("addForm").reset();$("addStatus").textContent="Added to Shortlisted."+(row.jd?" It gets scored in the next morning run.":"");
+    state.stage="shortlist";saveView();load();
+  });
+
+  // auth
+  function show(signedIn){$("loginView").hidden=signedIn;$("appView").hidden=!signedIn;if(signedIn)load();}
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();$("lStatus").textContent="Signing in…";
+    const {error}=await sb.auth.signInWithPassword({email:$("lEmail").value.trim(),password:$("lPass").value});
+    $("lStatus").textContent=error?(/confirm/i.test(error.message)?"Your account still needs to be confirmed. Ask Claude to confirm it, then sign in.":"Email or password is wrong."):"";
+  });
+  $("lSignUp").onclick=async()=>{
+    const email=$("lEmail").value.trim(),password=$("lPass").value;
+    if(!email||password.length<8){$("lStatus").textContent="Enter your email and a password of at least 8 characters.";return;}
+    $("lStatus").textContent="Creating your account…";
+    const {data,error}=await sb.auth.signUp({email,password});
+    if(error){$("lStatus").textContent=error.message;return;}
+    $("lStatus").textContent=data.session?"":"Account created. Ask Claude to confirm it, then sign in.";
+  };
+  $("signOut").onclick=async()=>{await sb.auth.signOut();};
+  const appUrl=location.origin+location.pathname;
+  $("lForgot").onclick=async()=>{
+    const email=$("lEmail").value.trim();
+    if(!email){$("lStatus").textContent="Enter your email first, then tap Forgot password.";return;}
+    $("lStatus").textContent="Sending a reset link…";
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:appUrl});
+    $("lStatus").textContent=error?"Couldn't send the reset email. Try again in a minute.":"Check your email and open the reset link on this phone.";
+  };
+  let recovering=/type=recovery/.test(location.hash);
+  $("resetForm").addEventListener("submit",async e=>{
+    e.preventDefault();$("rSave").disabled=true;$("rStatus").textContent="Saving…";
+    const {error}=await sb.auth.updateUser({password:$("rPass").value});
+    $("rSave").disabled=false;
+    if(error){$("rStatus").textContent=error.message;return;}
+    recovering=false;history.replaceState(null,"",appUrl);$("resetView").hidden=true;show(true);
+  });
+  sb.auth.onAuthStateChange((ev,session)=>{
+    if(ev==="PASSWORD_RECOVERY"||(recovering&&session)){recovering=true;$("loginView").hidden=true;$("appView").hidden=true;$("resetView").hidden=false;return;}
+    show(!!session);
+  });
+  sb.auth.getSession().then(({data})=>{if(!recovering)show(!!data.session);});
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>

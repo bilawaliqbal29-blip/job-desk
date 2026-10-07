@@ -171,7 +171,7 @@ details.pack summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--f
       <h1>Gulf &amp; ANZ Job Desk</h1>
       <p>Every role here was opened and checked as still open when it was added. Pick a stage, copy the apply pack, apply on the board, then move the role along.</p>
     </div>
-    <div class="run"><span id="run">Loading…</span><br><button class="mini" type="button" id="masterCv">Download my CV</button> <button class="mini" type="button" id="signOut">Sign out</button></div>
+    <div class="run"><span id="run">Loading…</span><br><button class="mini" type="button" id="masterCv">Master CV (PDF)</button> <button class="mini" type="button" id="signOut">Sign out</button></div>
   </header>
 
   <nav class="stages" id="stages" aria-label="Pipeline stage"></nav>
@@ -306,9 +306,23 @@ details.pack summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--f
     }
     if(state.cv){
       const st=el("span",{class:"status"});
-      const b=el("button",{class:"btn",type:"button",text:j.cv_tailor?"Download CV tailored for this role":"Download my CV"});
-      b.onclick=()=>downloadCv(j.cv_tailor,j.company,b,st);
-      pack.append(el("div",{style:"display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap"},b,st));
+      const row2=el("div",{style:"display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap"});
+      if(j.cv_tailor){
+        const b=el("button",{class:"btn primary",type:"button",text:"Download tailored resume (PDF)"});
+        b.onclick=()=>downloadCv(j.cv_tailor,j,b,st,"pdf");
+        const w=el("button",{class:"mini",type:"button",text:"Word version"});
+        w.onclick=()=>downloadCv(j.cv_tailor,j,w,st,"docx");
+        row2.append(b,w,st);
+      }else if(j.tailor_requested){
+        row2.append(el("span",{class:"status",text:"Tailored resume requested. It will be ready here after the next morning run."}));
+      }else{
+        const b=el("button",{class:"btn primary",type:"button",text:"Get a resume tailored to this job"});
+        b.onclick=()=>{b.disabled=true;save(j.id,{tailor_requested:true});};
+        const m=el("button",{class:"mini",type:"button",text:"Master CV (PDF)"});
+        m.onclick=()=>downloadCv(null,null,m,st,"pdf");
+        row2.append(b,m,st);
+      }
+      pack.append(row2);
     }
     const notes=el("textarea",{class:"notes",id:"nt-"+j.id,placeholder:"Notes: recruiter name, reference number, follow-up date…","aria-label":"Notes for "+j.title});
     notes.value=j.notes||"";notes.onchange=()=>save(j.id,{notes:notes.value});
@@ -340,21 +354,29 @@ details.pack summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--f
     const j=state.jobs.find(x=>x.id===id);if(j)Object.assign(j,patch);render();
   }
   function loadScript(src){return new Promise((ok,fail)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=fail;document.head.append(s);});}
-  async function downloadCv(tailor,company,btn,st){
+  async function downloadCv(tailor,job,btn,st,fmt){
     if(!state.cv){if(st)st.textContent="Your CV hasn't loaded yet. Tap Refresh and try again.";return;}
-    btn.disabled=true;if(st)st.textContent="Building your CV…";
+    fmt=fmt||"pdf";
+    btn.disabled=true;if(st)st.textContent="Building your resume…";
     try{
-      if(!window.docx)await loadScript("https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js");
-      if(!window.buildCv)await loadScript("cv.js");
-      const blob=await window.docx.Packer.toBlob(window.buildCv(window.docx,state.cv,tailor||null));
-      const name="Bilawal_Iqbal_CV"+(tailor&&company?"_"+company.replace(/[^A-Za-z0-9]+/g,"_"):"")+".docx";
+      if(!window.buildCv||!window.buildCvPdf)await loadScript("cv.js?v=4");
+      let blob;
+      if(fmt==="pdf"){
+        if(!window.jspdf)await loadScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
+        blob=window.buildCvPdf(window.jspdf.jsPDF,state.cv,tailor||null);
+      }else{
+        if(!window.docx)await loadScript("https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js");
+        blob=await window.docx.Packer.toBlob(window.buildCv(window.docx,state.cv,tailor||null));
+      }
+      const tag=tailor&&job?"_"+(job.company+" "+job.title).replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,60):"";
+      const name=(tailor?"Bilawal_Iqbal_Resume":"Bilawal_Iqbal_CV")+tag+"."+fmt;
       const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();
       setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
       if(st)st.textContent="Saved "+name;
     }catch(e){if(st)st.textContent="Couldn't build the CV. Check your connection and try again.";}
     btn.disabled=false;
   }
-  $("masterCv").onclick=()=>downloadCv(null,null,$("masterCv"),$("run"));
+  $("masterCv").onclick=()=>downloadCv(null,null,$("masterCv"),$("run"),"pdf");
   $("minMatch").onchange=e=>{state.min=+e.target.value;saveView();render();};
   $("sortBy").onchange=e=>{state.sort=e.target.value;saveView();render();};
   $("refresh").onclick=load;

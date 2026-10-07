@@ -1,5 +1,5 @@
 // App shell cache: network first, cache as fallback so the app opens offline.
-const CACHE = "jobdesk-v3";
+const CACHE = "jobdesk-v4";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cv.js"];
 
 self.addEventListener("install", e => {
